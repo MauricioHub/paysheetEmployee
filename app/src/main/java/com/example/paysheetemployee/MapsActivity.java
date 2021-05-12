@@ -2,7 +2,9 @@ package com.example.paysheetemployee;
 
 import androidx.fragment.app.FragmentActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -42,5 +44,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    public void throwMarkActivity(View view){
+        try {
+            Intent intent = new Intent(this, MarkActivity.class);
+            startActivity(intent);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

@@ -43,16 +43,19 @@
                 android:layout_height="150dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal">
+
                 <TextView
-                    android:layout_width="200dp"
-                    android:layout_height="50dp"
-                    android:text="TEST-FIRST: HOUR-MIN"
-                    android:textAlignment="center"/>
+                    android:id="@+id/textViewHoraMarcar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="50dp"
+                    android:text="Hora"/>
                 <TextView
-                    android:layout_width="200dp"
-                    android:layout_height="50dp"
-                    android:text="TEST-SECOND: HOUR-MIN"
-                    android:textAlignment="center"/>
+                    android:id="@+id/textViewFechaMarcar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="30dp"
+                    android:text="Fecha"/>
 
             </LinearLayout>
 
@@ -71,8 +74,9 @@
                     android:layout_width="250dp"
                     android:layout_height="50dp"
                     android:background="@color/colorPrimary"
-                    android:textColor="@color/white"
-                    android:text="MARCAR"/>
+                    android:onClick="throwMarkActivity"
+                    android:text="MARCAR"
+                    android:textColor="@color/white" />
 
             </LinearLayout>
 
