@@ -182,7 +182,7 @@
                 android:textColor="@color/white"
                 android:background="@color/colorPrimary"
                 android:layout_marginTop="50dp"
-                android:onClick="throwMaps"/>
+                android:onClick="doLogin"/>
             <!-- <ImageButton
             android:id="@+id/requestAccessButton"
             android:layout_width="wrap_content"

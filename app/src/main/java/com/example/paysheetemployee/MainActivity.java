@@ -1,5 +1,6 @@
 package com.example.paysheetemployee;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -9,6 +10,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.paysheetemployee.utils.Preferences;
 import com.example.paysheetemployee.utils.UtilString;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -35,33 +37,35 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView usernameTv, passwordTv, companyTv;
     private String usernameTxt, passwordTxt;
+    private Preferences preferences;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = this;
         /*Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);*/
         companyTv = findViewById(R.id.companyText);
         usernameTv = findViewById(R.id.userIdText);
         passwordTv = findViewById(R.id.userPasswordText);
+        preferences = new Preferences(context);
         usernameTxt = "";
         passwordTxt = "";
     }
 
-    public void throwMaps(View view){
+    public void throwMaps(){
         try {
-            //Intent intent = new Intent(this, MapsActivity.class);
-            //startActivity(intent);
-            doLogin();
-
+            Intent intent = new Intent(this, MapsActivity.class);
+            startActivity(intent);
             System.out.println("Empresa:" + companyTv.getText() + "Usuario:" + usernameTv.getText() + " passwrod:" + passwordTv.getText());
         } catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void doLogin() {
+    public void doLogin(View view) {
         try{
             usernameTxt = usernameTv.getText().toString();
             passwordTxt = passwordTv.getText().toString();
@@ -76,7 +80,10 @@ public class MainActivity extends AppCompatActivity {
                                 if(success.compareTo("true")==0){
                                     String token = responseObj.getJSONObject("data").get("token").toString();
                                     String name = responseObj.getJSONObject("data").get("name").toString();
+                                    preferences.setPaysheetToken(token);
+                                    preferences.setPUsername(usernameTxt);
                                     System.out.println("token:" + token + " name:" + name);
+                                    throwMaps();
                                 }
 
 
@@ -97,9 +104,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             // error
-                            Log.d("Error.Response", error.getMessage());
-                            Toast.makeText(getApplicationContext(), error.getMessage(),
-                                    Toast.LENGTH_SHORT).show();
+                            error.getMessage();
                         }
                     }
             ) {
