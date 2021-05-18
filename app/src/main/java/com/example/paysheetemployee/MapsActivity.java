@@ -5,7 +5,6 @@ import androidx.fragment.app.FragmentActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -14,6 +13,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.example.paysheetemployee.databinding.ActivityMapsBinding;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -22,42 +22,27 @@ import java.util.Date;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private TextView hour;
-    private TextView date;
+    private ActivityMapsBinding binding;
+    private TextView hour, date;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        hour = (TextView) findViewById(R.id.textViewHoraMarcar);
-        date = (TextView) findViewById(R.id.textViewFechaMarcar);
-        hour.setText(getHour());
-        date.setText(getDate());
+        try {
+            binding = ActivityMapsBinding.inflate(getLayoutInflater());
+            setContentView(binding.getRoot());
+            // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-    }
-
-    //    obtener hora
-    public String getHour() {
-        String horaMarcada;
-        Date date = new Date();
-        DateFormat hourFormat = new SimpleDateFormat("HH:mm");
-        System.out.println("Hora: " + hourFormat.format(date));
-        horaMarcada = hourFormat.format(date);
-        return horaMarcada;
-    }
-
-    //    obtener fecha
-    public String getDate() {
-        String fechaMarcada;
-        Date date = new Date();
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        System.out.println("Fecha: " + dateFormat.format(date));
-        fechaMarcada = dateFormat.format(date);
-        return fechaMarcada;
+            hour = (TextView) findViewById(R.id.textViewHoraMarcar);
+            date = (TextView) findViewById(R.id.textViewFechaMarcar);
+            hour.setText(getHour());
+            date.setText(getDate());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -77,6 +62,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    //    obtener hora
+    public String getHour() {
+        String horaMarcada = "";
+        try {
+            Date date = new Date();
+            DateFormat hourFormat = new SimpleDateFormat("HH:mm");
+            System.out.println("Hora: " + hourFormat.format(date));
+            horaMarcada = hourFormat.format(date);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return horaMarcada;
+    }
+
+    //    obtener fecha
+    public String getDate() {
+        String fechaMarcada = "";
+        try {
+            Date date = new Date();
+            DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            System.out.println("Fecha: " + dateFormat.format(date));
+            fechaMarcada = dateFormat.format(date);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return fechaMarcada;
     }
 
     public void throwMarkActivity(View view){

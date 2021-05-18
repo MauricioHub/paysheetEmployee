@@ -1,31 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MapsActivity">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolBarMenu"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="@color/colorPrimary">
-
-        <TextView
-            android:id="@+id/toolbar_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/app_name"
-            android:textColor="@color/white" />
-    </androidx.appcompat.widget.Toolbar>
+        android:layout_height="match_parent"
+        android:gravity="top|center"
+        android:paddingTop="50dp"
+        android:alpha="0.5">
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        tools:context=".MapsActivity" />
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -85,4 +83,4 @@
 
     </LinearLayout>
 
-</RelativeLayout>
+</FrameLayout>
