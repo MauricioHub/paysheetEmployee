@@ -3,6 +3,7 @@ package com.example.paysheetemployee;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -25,6 +26,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -65,12 +67,14 @@ public class MarkActivity extends AppCompatActivity {
     private Uri photoURI;
     private Context context;
     private ImageView userPicture;
-    ProgressBar indeterminateBar;
+    private Date today;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mark);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
         preferences = new Preferences(this);
         context = this;
 
@@ -80,6 +84,21 @@ public class MarkActivity extends AppCompatActivity {
             markMessage = "";
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // todo: goto back activity from here
+                Intent intent = new Intent(this, MapsActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -255,27 +274,6 @@ public class MarkActivity extends AppCompatActivity {
         return image;
     }
 
-    /*@Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        try {
-            if (requestCode == REQUEST_CODE_TAKE_PHOTO && resultCode == RESULT_OK) {
-
-                Bitmap bitmap;
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), photoURI);
-                    userPicture.setImageBitmap(bitmap);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-    }*/
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -341,48 +339,6 @@ public class MarkActivity extends AppCompatActivity {
         } catch (Exception e){
             e.printStackTrace();
         }
-
-        /*try {
-            if (requestCode == REQUEST_CODE_TAKE_PHOTO && resultCode == RESULT_OK){
-                Bitmap imageBitmap = null;
-                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                bmOptions.inJustDecodeBounds = false;
-                if (mCurrentPhotoPath != "") {
-                    File file = new File(mCurrentPhotoPath);
-                    if(file.exists()){
-                        Bitmap notEncodedImage  = BitmapFactory.decodeFile(file.getAbsolutePath(), bmOptions);
-                        userPicture.setImageBitmap(notEncodedImage);
-                        int photoW = bmOptions.outWidth;
-                        int photoH = bmOptions.outHeight;
-
-                        // Determine how much to scale down the image
-                        int scaleFactor = Math.min(photoW / 300, photoH / 400);
-
-                        System.out.println("Source Width: " + photoW);
-                        System.out.println("Source Height: " + photoH);
-
-                        // Decode the image file into a Bitmap sized to fill the View
-                        bmOptions.inJustDecodeBounds = false;
-                        bmOptions.inSampleSize = scaleFactor;
-                        bmOptions.inPurgeable = true;
-
-                        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-                        System.out.println("Final Width: " + bmOptions.outWidth);
-                        System.out.println("Final Height: " + bmOptions.outHeight);
-                        imageBitmap = bitmap;
-                    }
-                }
-                if (imageBitmap != null) {
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    imageBitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
-                    byte[] byteArray = stream.toByteArray();
-                    encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
-                }
-            }
-
-        } catch (Exception e){
-            e.printStackTrace();
-        }*/
     }
 
 
@@ -406,9 +362,8 @@ public class MarkActivity extends AppCompatActivity {
 
     public void enviarMarcacion(View view) {
         try{
-            Date today = new Date();
+            today = new Date();
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            System.out.println("Fecha: " + dateFormat.format(today));
             String todayStr = dateFormat.format(today);
 
             StringRequest postRequest = new StringRequest(Request.Method.POST, UtilString.MarkRegisterUrl,
@@ -479,8 +434,8 @@ public class MarkActivity extends AppCompatActivity {
                     Map<String, String>  params = new HashMap<String, String>();
                     try{
                         params.put("mark_date", todayStr);
-                        params.put("lat", "-2.19616");
-                        params.put("lng", "-79.88621");
+                        params.put("lat", preferences.getPLattitude());
+                        params.put("lng", preferences.getPLongitude());
                         params.put("user_id", preferences.getPUsername());
                         params.put("mark_type_id", "1");
                         params.put("picture", encodedImage);

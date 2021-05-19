@@ -8,7 +8,7 @@
     tools:context=".MarkActivity">
 
     <!--<androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolBarMenu"
+        android:id="@+id/toolBarMarks"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:background="@color/colorPrimary">

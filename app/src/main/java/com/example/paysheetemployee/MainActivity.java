@@ -12,18 +12,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.paysheetemployee.utils.Preferences;
 import com.example.paysheetemployee.utils.UtilString;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonObject;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.util.Log;
 import android.view.View;
-
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,13 +36,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        preferences = new Preferences(this);
         context = this;
-        /*Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);*/
         companyTv = findViewById(R.id.companyText);
         usernameTv = findViewById(R.id.userIdText);
         passwordTv = findViewById(R.id.userPasswordText);
-        preferences = new Preferences(context);
         usernameTxt = "";
         passwordTxt = "";
     }

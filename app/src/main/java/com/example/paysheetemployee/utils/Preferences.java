@@ -10,6 +10,8 @@ public class Preferences {
 
     private static final String pPaysheetToken = "com.example.paysheetemployee.token";
     private static final String pUsername = "com.example.paysheetemployee.username";
+    private static final String pLattitude = "com.example.paysheetemployee.lattitude";
+    private static final String pLongitude = "com.example.paysheetemployee.longitude";
 
     public Preferences(Context context) {
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -32,6 +34,26 @@ public class Preferences {
     public void setPUsername(String name){
         editor = preferences.edit();
         editor.putString(pUsername, name);
+        editor.commit();
+    }
+
+    public String getPLattitude() {
+        return preferences.getString(pLattitude,"").replace("\"","");
+    }
+
+    public void setPLattitude(String lattitude){
+        editor = preferences.edit();
+        editor.putString(pLattitude, lattitude);
+        editor.commit();
+    }
+
+    public String getPLongitude() {
+        return preferences.getString(pLongitude,"").replace("\"","");
+    }
+
+    public void setPLongitude(String longitude){
+        editor = preferences.edit();
+        editor.putString(pLongitude, longitude);
         editor.commit();
     }
 
