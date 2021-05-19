@@ -23,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -36,6 +37,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.paysheetemployee.utils.Preferences;
 import com.example.paysheetemployee.utils.UtilString;
 
 import org.json.JSONException;
@@ -57,7 +59,8 @@ public class MarkActivity extends AppCompatActivity {
     public final static int RESP_TOMAR_FOTO = 1000;
     public static final int REQUEST_CODE_TAKE_PHOTO = 0 /*1*/;
     private static final int MY_PERMISSIONS_REQUEST_CODE = 123;
-    private String mCurrentPhotoPath;
+    private Preferences preferences;
+    private String mCurrentPhotoPath, encodedImage;
     private Uri photoURI;
     private Context context;
     private ImageView userPicture;
@@ -67,10 +70,12 @@ public class MarkActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mark);
+        preferences = new Preferences(this);
         context = this;
 
         try {
             userPicture = (ImageView) findViewById(R.id.userPicture);
+            encodedImage = "";
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -248,7 +253,7 @@ public class MarkActivity extends AppCompatActivity {
         return image;
     }
 
-    @Override
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
@@ -264,6 +269,49 @@ public class MarkActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }*/
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            if (requestCode == REQUEST_CODE_TAKE_PHOTO && resultCode == RESULT_OK){
+                Bitmap imageBitmap = null;
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                bmOptions.inJustDecodeBounds = true;
+                if (mCurrentPhotoPath != "") {
+                    Bitmap notEncodedImage  = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+                    userPicture.setImageBitmap(notEncodedImage);
+                    int photoW = bmOptions.outWidth;
+                    int photoH = bmOptions.outHeight;
+
+                    // Determine how much to scale down the image
+                    int scaleFactor = Math.min(photoW / 300, photoH / 400);
+
+                    System.out.println("Source Width: " + photoW);
+                    System.out.println("Source Height: " + photoH);
+
+                    // Decode the image file into a Bitmap sized to fill the View
+                    bmOptions.inJustDecodeBounds = false;
+                    bmOptions.inSampleSize = scaleFactor;
+                    bmOptions.inPurgeable = true;
+
+                    Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+                    System.out.println("Final Width: " + bmOptions.outWidth);
+                    System.out.println("Final Height: " + bmOptions.outHeight);
+                    imageBitmap = bitmap;
+                }
+                if (imageBitmap != null) {
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    imageBitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+                    byte[] byteArray = stream.toByteArray();
+                    encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                }
+            }
+
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -290,7 +338,7 @@ public class MarkActivity extends AppCompatActivity {
 
     public void enviarMarcacion() {
         try{
-            StringRequest postRequest = new StringRequest(Request.Method.POST, UtilString.LoginUrl,
+            StringRequest postRequest = new StringRequest(Request.Method.POST, UtilString.MarkRegisterUrl,
                     new Response.Listener<String>()
                     {
                         @Override
@@ -327,7 +375,7 @@ public class MarkActivity extends AppCompatActivity {
                 @Override
                 public Map<String, String> getHeaders() {
                     Map<String, String> headers = new HashMap<>();
-                   // headers.put("Authorization", "Bearer " + preferencias.getTokenPinlet());
+                    headers.put("Authorization", "Bearer " + preferences.getPaysheetToken());
                     headers.put("Content-Type", "application/x-www-form-urlencoded");
                     return headers;
                 }
@@ -336,10 +384,12 @@ public class MarkActivity extends AppCompatActivity {
                 protected Map<String, String> getParams() {
                     Map<String, String>  params = new HashMap<String, String>();
                     try{
-                        /*params.put("conjunto", preferencias.getConjunto());
-                        params.put("unidad", preferencias.getUnidad());
-                        params.put("usuario", preferencias.getUsuario());
-                        params.put("id_evento", "" + preferencias.getEventosArray().get(positionEvento).getIdEvento());*/
+                        params.put("mark_date", "");
+                        params.put("lat", "");
+                        params.put("lng", "");
+                        params.put("user_id", "");
+                        params.put("mark_type_id", "");
+                        params.put("picture", encodedImage);
                     } catch(Exception e){
                         Toast.makeText(getApplicationContext(), e.getMessage(),
                                 Toast.LENGTH_SHORT).show();
