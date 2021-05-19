@@ -52,7 +52,8 @@
                 <Button
                     android:layout_width="100dp"
                     android:layout_height="50dp"
-                    android:text="ENVIAR MARCA"/>
+                    android:text="ENVIAR MARCA"
+                    android:onClick="enviarMarcacion"/>
 
             </LinearLayout>
         </LinearLayout>

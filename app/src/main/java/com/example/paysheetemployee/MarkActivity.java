@@ -47,6 +47,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -60,7 +61,7 @@ public class MarkActivity extends AppCompatActivity {
     public static final int REQUEST_CODE_TAKE_PHOTO = 0 /*1*/;
     private static final int MY_PERMISSIONS_REQUEST_CODE = 123;
     private Preferences preferences;
-    private String mCurrentPhotoPath, encodedImage;
+    private String mCurrentPhotoPath, encodedImage, markMessage;
     private Uri photoURI;
     private Context context;
     private ImageView userPicture;
@@ -76,6 +77,7 @@ public class MarkActivity extends AppCompatActivity {
         try {
             userPicture = (ImageView) findViewById(R.id.userPicture);
             encodedImage = "";
+            markMessage = "";
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -277,32 +279,98 @@ public class MarkActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        //Uri uri = photoURI;
+        InputStream in = null;
         try {
+            final int IMAGE_MAX_SIZE = 1200000; // 1.2MP
+            if (requestCode == REQUEST_CODE_TAKE_PHOTO && resultCode == RESULT_OK){
+                in = getContentResolver().openInputStream(photoURI);
+
+                // Decode image size
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeStream(in, null, options);
+                in.close();
+
+                int scale = 1;
+                while ((options.outWidth * options.outHeight) * (1 / Math.pow(scale, 2)) >
+                        IMAGE_MAX_SIZE) {
+                    scale++;
+                }
+                Log.d("IMAGE DATA: ", "scale = " + scale + ", orig-width: " + options.outWidth + ",orig-height: " + options.outHeight);
+
+                Bitmap resultBitmap = null;
+                in = getContentResolver().openInputStream(photoURI);
+                if (scale > 1) {
+                    scale--;
+                    // scale to max possible inSampleSize that still yields an image
+                    // larger than target
+                    options = new BitmapFactory.Options();
+                    options.inSampleSize = scale;
+                    resultBitmap = BitmapFactory.decodeStream(in, null, options);
+                    userPicture.setImageBitmap(resultBitmap);
+
+                    // resize to desired dimensions
+                    int height = resultBitmap.getHeight();
+                    int width = resultBitmap.getWidth();
+                    Log.d("IMAGE DATA: ", "1th scale operation dimenions - width: " + width + ",height: " + height);
+
+                    double y = Math.sqrt(IMAGE_MAX_SIZE
+                            / (((double) width) / height));
+                    double x = (y / height) * width;
+
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(resultBitmap, (int) x,
+                            (int) y, true);
+                    //resultBitmap.recycle();
+                    resultBitmap = scaledBitmap;
+
+                    System.gc();
+                } else {
+                    resultBitmap = BitmapFactory.decodeStream(in);
+                }
+
+                if (resultBitmap != null) {
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    resultBitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+                    byte[] byteArray = stream.toByteArray();
+                    encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                    encodedImage = "data:image/jpeg;base64," + encodedImage;
+                }
+                in.close();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        /*try {
             if (requestCode == REQUEST_CODE_TAKE_PHOTO && resultCode == RESULT_OK){
                 Bitmap imageBitmap = null;
                 BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                bmOptions.inJustDecodeBounds = true;
+                bmOptions.inJustDecodeBounds = false;
                 if (mCurrentPhotoPath != "") {
-                    Bitmap notEncodedImage  = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-                    userPicture.setImageBitmap(notEncodedImage);
-                    int photoW = bmOptions.outWidth;
-                    int photoH = bmOptions.outHeight;
+                    File file = new File(mCurrentPhotoPath);
+                    if(file.exists()){
+                        Bitmap notEncodedImage  = BitmapFactory.decodeFile(file.getAbsolutePath(), bmOptions);
+                        userPicture.setImageBitmap(notEncodedImage);
+                        int photoW = bmOptions.outWidth;
+                        int photoH = bmOptions.outHeight;
 
-                    // Determine how much to scale down the image
-                    int scaleFactor = Math.min(photoW / 300, photoH / 400);
+                        // Determine how much to scale down the image
+                        int scaleFactor = Math.min(photoW / 300, photoH / 400);
 
-                    System.out.println("Source Width: " + photoW);
-                    System.out.println("Source Height: " + photoH);
+                        System.out.println("Source Width: " + photoW);
+                        System.out.println("Source Height: " + photoH);
 
-                    // Decode the image file into a Bitmap sized to fill the View
-                    bmOptions.inJustDecodeBounds = false;
-                    bmOptions.inSampleSize = scaleFactor;
-                    bmOptions.inPurgeable = true;
+                        // Decode the image file into a Bitmap sized to fill the View
+                        bmOptions.inJustDecodeBounds = false;
+                        bmOptions.inSampleSize = scaleFactor;
+                        bmOptions.inPurgeable = true;
 
-                    Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-                    System.out.println("Final Width: " + bmOptions.outWidth);
-                    System.out.println("Final Height: " + bmOptions.outHeight);
-                    imageBitmap = bitmap;
+                        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+                        System.out.println("Final Width: " + bmOptions.outWidth);
+                        System.out.println("Final Height: " + bmOptions.outHeight);
+                        imageBitmap = bitmap;
+                    }
                 }
                 if (imageBitmap != null) {
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -314,7 +382,7 @@ public class MarkActivity extends AppCompatActivity {
 
         } catch (Exception e){
             e.printStackTrace();
-        }
+        }*/
     }
 
 
@@ -336,8 +404,13 @@ public class MarkActivity extends AppCompatActivity {
     }
 
 
-    public void enviarMarcacion() {
+    public void enviarMarcacion(View view) {
         try{
+            Date today = new Date();
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            System.out.println("Fecha: " + dateFormat.format(today));
+            String todayStr = dateFormat.format(today);
+
             StringRequest postRequest = new StringRequest(Request.Method.POST, UtilString.MarkRegisterUrl,
                     new Response.Listener<String>()
                     {
@@ -345,9 +418,23 @@ public class MarkActivity extends AppCompatActivity {
                         public void onResponse(String response) {
                             try{
                                 JSONObject responseObj = new JSONObject(response);
-                                String estadoObj = responseObj.get("estado").toString();
-                                //if(estadoObj.compareTo("200")==0)
-
+                                String success = responseObj.get("success").toString();
+                                if (success.compareTo("true") == 0){
+                                    markMessage = responseObj.get("message").toString();
+                                    AlertDialog.Builder builder;
+                                    builder = new AlertDialog.Builder(context);
+                                    builder.setTitle(R.string.app_name)
+                                            .setMessage(markMessage)
+                                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    // ok boton
+                                                    Intent intent = new Intent(context, MapsActivity.class);
+                                                    startActivity(intent);
+                                                    finish();
+                                                }
+                                            })
+                                            .show();
+                                }
 
                             } catch(JSONException e){
                                 e.printStackTrace();
@@ -366,9 +453,16 @@ public class MarkActivity extends AppCompatActivity {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             // error
-                            Log.d("Error.Response", error.getMessage());
-                            Toast.makeText(getApplicationContext(), error.getMessage(),
-                                    Toast.LENGTH_SHORT).show();
+                            AlertDialog.Builder builder;
+                            builder = new AlertDialog.Builder(context);
+                            builder.setTitle(context.getApplicationInfo().name)
+                                    .setMessage(error.getMessage())
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            finish();
+                                        }
+                                    })
+                                    .show();
                         }
                     }
             ) {
@@ -384,11 +478,11 @@ public class MarkActivity extends AppCompatActivity {
                 protected Map<String, String> getParams() {
                     Map<String, String>  params = new HashMap<String, String>();
                     try{
-                        params.put("mark_date", "");
-                        params.put("lat", "");
-                        params.put("lng", "");
-                        params.put("user_id", "");
-                        params.put("mark_type_id", "");
+                        params.put("mark_date", todayStr);
+                        params.put("lat", "-2.19616");
+                        params.put("lng", "-79.88621");
+                        params.put("user_id", preferences.getPUsername());
+                        params.put("mark_type_id", "1");
                         params.put("picture", encodedImage);
                     } catch(Exception e){
                         Toast.makeText(getApplicationContext(), e.getMessage(),
