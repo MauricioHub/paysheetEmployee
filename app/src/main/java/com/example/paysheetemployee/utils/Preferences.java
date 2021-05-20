@@ -12,6 +12,7 @@ public class Preferences {
     private static final String pUsername = "com.example.paysheetemployee.username";
     private static final String pLattitude = "com.example.paysheetemployee.lattitude";
     private static final String pLongitude = "com.example.paysheetemployee.longitude";
+    private static final String pLoginStatus = "com.example.paysheetemployee.login";
 
     public Preferences(Context context) {
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -24,6 +25,16 @@ public class Preferences {
     public void setPaysheetToken(String pToken){
         editor = preferences.edit();
         editor.putString(pPaysheetToken, pToken);
+        editor.commit();
+    }
+
+    public String getPLoginStatus() {
+        return preferences.getString(pLoginStatus,"").replace("\"","");
+    }
+
+    public void setPLoginStatus(String login){
+        editor = preferences.edit();
+        editor.putString(pLoginStatus, login);
         editor.commit();
     }
 

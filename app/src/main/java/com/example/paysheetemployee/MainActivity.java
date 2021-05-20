@@ -15,6 +15,7 @@ import com.example.paysheetemployee.utils.UtilString;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,8 +28,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView usernameTv, passwordTv, companyTv;
-    private String usernameTxt, passwordTxt;
+    private final int SPLASH_DISPLAY_LENGTH = 1000;
     private Preferences preferences;
     private Context context;
 
@@ -38,88 +38,37 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         preferences = new Preferences(this);
         context = this;
-        companyTv = findViewById(R.id.companyText);
-        usernameTv = findViewById(R.id.userIdText);
-        passwordTv = findViewById(R.id.userPasswordText);
-        usernameTxt = "";
-        passwordTxt = "";
+
+        /* New Handler to start the Menu-Activity
+         * and close this Splash-Screen after some seconds.*/
+        new Handler().postDelayed(new Runnable(){
+            @Override
+            public void run() {
+                /* Create an Intent that will start the Menu-Activity. */
+                if(preferences.getPLoginStatus().equals("loged")){
+                    throwMapsActivity();
+                } else{
+                    throwLoginActivity();
+                }
+            }
+        }, SPLASH_DISPLAY_LENGTH);
     }
 
-    public void throwMaps(){
+    public void throwMapsActivity(){
         try {
-            Intent intent = new Intent(this, MapsActivity.class);
+            Intent intent = new Intent(context, MapsActivity.class);
             startActivity(intent);
-            System.out.println("Empresa:" + companyTv.getText() + "Usuario:" + usernameTv.getText() + " passwrod:" + passwordTv.getText());
+            finish();
         } catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void doLogin(View view) {
-        try{
-            usernameTxt = usernameTv.getText().toString();
-            passwordTxt = passwordTv.getText().toString();
-            StringRequest postRequest = new StringRequest(Request.Method.POST, UtilString.LoginUrl,
-                    new Response.Listener<String>()
-                    {
-                        @Override
-                        public void onResponse(String response) {
-                            try{
-                                JSONObject responseObj = new JSONObject(response);
-                                String success = responseObj.get("success").toString();
-                                if(success.compareTo("true")==0){
-                                    String token = responseObj.getJSONObject("data").get("token").toString();
-                                    String name = responseObj.getJSONObject("data").get("name").toString();
-                                    preferences.setPaysheetToken(token);
-                                    preferences.setPUsername(usernameTxt);
-                                    System.out.println("token:" + token + " name:" + name);
-                                    throwMaps();
-                                }
-
-
-                            } catch(JSONException e){
-                                e.printStackTrace();
-                                Toast.makeText(getApplicationContext(), "ERR-" + e.getMessage(),
-                                        Toast.LENGTH_SHORT).show();
-
-                            } catch(Exception e){
-                                e.printStackTrace();
-                                Toast.makeText(getApplicationContext(), "ERR-" + e.getMessage(),
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    },
-                    new Response.ErrorListener()
-                    {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            // error
-                            error.getMessage();
-                        }
-                    }
-            ) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Content-Type", "application/x-www-form-urlencoded");
-                    return headers;
-                }
-
-                @Override
-                protected Map<String, String> getParams() {
-                    Map<String, String>  params = new HashMap<String, String>();
-                    try{
-                        params.put("email", usernameTxt);
-                        params.put("password", passwordTxt);
-                    } catch(Exception e){
-                        Toast.makeText(getApplicationContext(), e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    return params;
-                }
-            };
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
-            requestQueue.add(postRequest);
+    public void throwLoginActivity(){
+        try {
+            Intent intent = new Intent(context, LoginActivity.class);
+            startActivity(intent);
+            finish();
         } catch (Exception e){
             e.printStackTrace();
         }

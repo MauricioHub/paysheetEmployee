@@ -58,7 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             binding = ActivityMapsBinding.inflate(getLayoutInflater());
             setContentView(binding.getRoot());
-            Toolbar toolbar = findViewById(R.id.toolBar);
+            //Toolbar toolbar = findViewById(R.id.toolBar);
             preferences = new Preferences(this);
             hour = (TextView) findViewById(R.id.textViewHoraMarcar);
             date = (TextView) findViewById(R.id.textViewFechaMarcar);
