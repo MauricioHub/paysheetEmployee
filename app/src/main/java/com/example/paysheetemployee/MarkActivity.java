@@ -28,8 +28,11 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,21 +55,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MarkActivity extends AppCompatActivity {
+public class MarkActivity extends AppCompatActivity
+        implements AdapterView.OnItemSelectedListener{
 
     public static boolean DEBUG_MODE = false;
-    public final static int RESP_TOMAR_FOTO = 1000;
     public static final int REQUEST_CODE_TAKE_PHOTO = 0 /*1*/;
     private static final int MY_PERMISSIONS_REQUEST_CODE = 123;
     private Preferences preferences;
-    private String mCurrentPhotoPath, encodedImage, markMessage;
+    private Spinner spinner;
     private Uri photoURI;
-    private Context context;
     private ImageView userPicture;
+    private Context context;
+    private String mCurrentPhotoPath, encodedImage, markMessage, markTypeId;
+    private ArrayAdapter adapterSpn;
+    private ArrayList markType;
     private Date today;
 
     @Override
@@ -75,16 +82,40 @@ public class MarkActivity extends AppCompatActivity {
         setContentView(R.layout.activity_mark);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+        markType = loadMarkTypes();
         preferences = new Preferences(this);
         context = this;
 
         try {
             userPicture = (ImageView) findViewById(R.id.userPicture);
+            spinner = (Spinner) findViewById(R.id.spinner);
+            spinner.setOnItemSelectedListener(this);
             encodedImage = "";
             markMessage = "";
+            markTypeId = "";
+
+            adapterSpn = new ArrayAdapter(this,
+                    android.R.layout.simple_spinner_item,
+                    markType);
+            adapterSpn.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(adapterSpn);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private ArrayList<String> loadMarkTypes(){
+        ArrayList<String> newMarkType = new ArrayList<>();
+        try {
+            newMarkType.add("Entrada");
+            newMarkType.add("Almuerzo");
+            newMarkType.add("Regreso");
+            newMarkType.add("Salida");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return newMarkType;
     }
 
     @Override
@@ -277,7 +308,6 @@ public class MarkActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        //Uri uri = photoURI;
         InputStream in = null;
         try {
             final int IMAGE_MAX_SIZE = 1200000; // 1.2MP
@@ -365,91 +395,114 @@ public class MarkActivity extends AppCompatActivity {
             today = new Date();
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String todayStr = dateFormat.format(today);
+            if (encodedImage.compareTo("") != 0){
+                StringRequest postRequest = new StringRequest(Request.Method.POST, UtilString.MarkRegisterUrl,
+                        new Response.Listener<String>()
+                        {
+                            @Override
+                            public void onResponse(String response) {
+                                try{
+                                    JSONObject responseObj = new JSONObject(response);
+                                    String success = responseObj.get("success").toString();
+                                    if (success.compareTo("true") == 0){
+                                        markMessage = responseObj.get("message").toString();
+                                        encodedImage = "";
+                                        AlertDialog.Builder builder;
+                                        builder = new AlertDialog.Builder(context);
+                                        builder.setTitle(R.string.app_name)
+                                                .setMessage(markMessage)
+                                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        // ok boton
+                                                        Intent intent = new Intent(context, MapsActivity.class);
+                                                        startActivity(intent);
+                                                        finish();
+                                                    }
+                                                })
+                                                .show();
+                                    }
 
-            StringRequest postRequest = new StringRequest(Request.Method.POST, UtilString.MarkRegisterUrl,
-                    new Response.Listener<String>()
-                    {
-                        @Override
-                        public void onResponse(String response) {
-                            try{
-                                JSONObject responseObj = new JSONObject(response);
-                                String success = responseObj.get("success").toString();
-                                if (success.compareTo("true") == 0){
-                                    markMessage = responseObj.get("message").toString();
-                                    AlertDialog.Builder builder;
-                                    builder = new AlertDialog.Builder(context);
-                                    builder.setTitle(R.string.app_name)
-                                            .setMessage(markMessage)
-                                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    // ok boton
-                                                    Intent intent = new Intent(context, MapsActivity.class);
-                                                    startActivity(intent);
-                                                    finish();
-                                                }
-                                            })
-                                            .show();
+                                } catch(JSONException e){
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(), "ERR-" + e.getMessage(),
+                                            Toast.LENGTH_SHORT).show();
+
+                                } catch(Exception e){
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(), "ERR-" + e.getMessage(),
+                                            Toast.LENGTH_SHORT).show();
                                 }
-
-                            } catch(JSONException e){
-                                e.printStackTrace();
-                                Toast.makeText(getApplicationContext(), "ERR-" + e.getMessage(),
-                                        Toast.LENGTH_SHORT).show();
-
-                            } catch(Exception e){
-                                e.printStackTrace();
-                                Toast.makeText(getApplicationContext(), "ERR-" + e.getMessage(),
-                                        Toast.LENGTH_SHORT).show();
+                            }
+                        },
+                        new Response.ErrorListener()
+                        {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // error
+                                AlertDialog.Builder builder;
+                                builder = new AlertDialog.Builder(context);
+                                builder.setTitle(context.getApplicationInfo().name)
+                                        .setMessage(error.getMessage())
+                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                            }
+                                        })
+                                        .show();
                             }
                         }
-                    },
-                    new Response.ErrorListener()
-                    {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            // error
-                            AlertDialog.Builder builder;
-                            builder = new AlertDialog.Builder(context);
-                            builder.setTitle(context.getApplicationInfo().name)
-                                    .setMessage(error.getMessage())
-                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            finish();
-                                        }
-                                    })
-                                    .show();
-                        }
+                ) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("Authorization", "Bearer " + preferences.getPaysheetToken());
+                        headers.put("Content-Type", "application/x-www-form-urlencoded");
+                        return headers;
                     }
-            ) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Authorization", "Bearer " + preferences.getPaysheetToken());
-                    headers.put("Content-Type", "application/x-www-form-urlencoded");
-                    return headers;
-                }
 
-                @Override
-                protected Map<String, String> getParams() {
-                    Map<String, String>  params = new HashMap<String, String>();
-                    try{
-                        params.put("mark_date", todayStr);
-                        params.put("lat", preferences.getPLattitude());
-                        params.put("lng", preferences.getPLongitude());
-                        params.put("user_id", preferences.getPUsername());
-                        params.put("mark_type_id", "1");
-                        params.put("picture", encodedImage);
-                    } catch(Exception e){
-                        Toast.makeText(getApplicationContext(), e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                    @Override
+                    protected Map<String, String> getParams() {
+                        Map<String, String>  params = new HashMap<String, String>();
+                        try{
+                            params.put("mark_date", todayStr);
+                            params.put("lat", preferences.getPLattitude());
+                            params.put("lng", preferences.getPLongitude());
+                            params.put("user_id", preferences.getPUsername());
+                            params.put("mark_type_id", markTypeId);
+                            params.put("picture", encodedImage);
+                        } catch(Exception e){
+                            Toast.makeText(getApplicationContext(), e.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        return params;
                     }
-                    return params;
-                }
-            };
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
-            requestQueue.add(postRequest);
+                };
+                RequestQueue requestQueue = Volley.newRequestQueue(this);
+                requestQueue.add(postRequest);
+            } else{
+                AlertDialog.Builder builder;
+                builder = new AlertDialog.Builder(context);
+                builder.setTitle(R.string.app_name)
+                        .setMessage(R.string.incomplete_photography)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                finish();
+                            }
+                        })
+                        .show();
+            }
         } catch (Exception e){
                 e.printStackTrace();
             }
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        markTypeId = "" + position;
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }

@@ -28,34 +28,51 @@
         android:gravity="center_vertical|center_horizontal">
 
         <LinearLayout
-            android:layout_width="200dp"
-            android:layout_height="300dp"
+            android:layout_width="300dp"
+            android:layout_height="500dp"
             android:orientation="vertical">
 
             <ImageView
                 android:id="@+id/userPicture"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"/>
+                android:layout_height="300dp"
+                android:src="@mipmap/ic_user_picture_default"/>
 
-            <LinearLayout
-                android:layout_width="200dp"
-                android:layout_height="100dp"
-                android:orientation="horizontal"
-                android:gravity="bottom">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="200dp">
 
-                <Button
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="FOTOGRAFIAR"
-                    android:onClick="sacarFoto"/>
+                <Spinner
+                    android:id="@+id/spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:spinnerMode="dialog"
+                    android:prompt="@string/hint_resource"/>
 
-                <Button
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="ENVIAR MARCA"
-                    android:onClick="enviarMarcacion"/>
+                <LinearLayout
+                    android:layout_width="300dp"
+                    android:layout_height="200dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-            </LinearLayout>
+                    <Button
+                        android:layout_width="145dp"
+                        android:layout_height="60dp"
+                        android:text="FOTOGRAFIAR"
+                        android:onClick="sacarFoto"/>
+
+                    <Button
+                        android:layout_width="145dp"
+                        android:layout_height="60dp"
+                        android:text="MARCACION"
+                        android:layout_marginLeft="10dp"
+                        android:onClick="enviarMarcacion"/>
+                </LinearLayout>
+            </RelativeLayout>
         </LinearLayout>
 
     </LinearLayout>
